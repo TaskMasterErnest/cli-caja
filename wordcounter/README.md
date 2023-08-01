@@ -30,7 +30,7 @@ To run tests, run the following command
   ./wc -b # to count bytes
 ```
 
-![wordcounter](/assets/wordcounter.gif)
+![](https://github.com/TaskMasterErnest/cli-caja/blob/main/wordcounter/assets/wordcounter.gif)
 
 
 
