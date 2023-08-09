@@ -76,7 +76,7 @@ func TestTodoCLI(t *testing.T) {
 
 	// create a second test, which ensure that the tool can list the tasks
 	t.Run("ListTasks", func(t *testing.T) {
-		// by default, running the command without arguments shold list the tasks
+		// by default, running the command without arguments should list the tasks
 		cmd := exec.Command(cmdPath, "-list")
 		output, err := cmd.CombinedOutput()
 		if err != nil {
@@ -84,10 +84,10 @@ func TestTodoCLI(t *testing.T) {
 		}
 
 		// specify the result expected
-		expected := task + "\n"
+		expected := fmt.Sprintf("  1: %s\n\n", task)
 
 		if expected != string(output) {
-			t.Errorf("expected %q, got %q instead \n", expected, string(output))
+			t.Errorf("expected %q, got %q instead\n", expected, string(output))
 		}
 	})
 }

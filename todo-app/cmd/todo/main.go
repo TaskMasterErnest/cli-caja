@@ -12,7 +12,16 @@ import (
 const todoFileName = ".todo.json"
 
 func main() {
-	// add flags to parse ad pass into the command-line
+	// addng a usage flag that points to all the functions
+	// we add usage information adn display a custom message when the code is run
+	flag.Usage = func() {
+		fmt.Fprintf(flag.CommandLine.Output(), "%s tool. Developed for use by Ernest Klu\n", os.Args[0])
+		fmt.Fprintf(flag.CommandLine.Output(), "Copyright 2023\n")
+		fmt.Fprintf(flag.CommandLine.Output(), "Usage information\n")
+		flag.PrintDefaults()
+	}
+
+	// add flags to parse and pass into the command-line
 	task := flag.String("task", "", "Task to be included in the ToDo string")
 	list := flag.Bool("list", false, "List all tasks")
 	complete := flag.Int("complete", 0, "Item to be completed")
@@ -34,11 +43,8 @@ func main() {
 	switch {
 	// for no extra arguments, print the list of tasks
 	case *list:
-		for _, item := range *l {
-			if !item.Done { // exclude the completed items from being listed
-				fmt.Println(item.Task)
-			}
-		}
+		// list the current lists,
+		fmt.Println(l)
 	case *complete > 0: // check if the number given is completed
 		if err := l.Complete(*complete); err != nil {
 			fmt.Fprintln(os.Stderr, err)
