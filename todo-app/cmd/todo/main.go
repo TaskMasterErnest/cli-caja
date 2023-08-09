@@ -14,6 +14,30 @@ import (
 // making the ToDo filename a variable
 var todoFileName = ".todo.json"
 
+// make a function that will print a list, it takes in a flag as a receiver
+func expandList(l *todo.List, verbose bool) {
+	// adding a formatted list
+	formatted := ""
+	// loop over the list and print out the tasks
+	for index, t := range *l {
+		// set a prefix
+		prefix := "  "
+		if t.Done {
+			prefix = "X "
+		}
+		if verbose {
+			if t.Done {
+				formatted += fmt.Sprintf("%s%d: %s -- Created: %v, Completed: %v\n", prefix, index+1, t.Task, t.CreatedAt, t.CompletedAt)
+			} else {
+				formatted += fmt.Sprintf("%s%d: %s -- Created: %v\n", prefix, index+1, t.Task, t.CreatedAt)
+			}
+		} else {
+			formatted += fmt.Sprintf("%s%d: %s\n", prefix, index+1, t.Task)
+		}
+	}
+	fmt.Println(formatted)
+}
+
 func main() {
 	// implement the use of a ENV_VAR to set the filename to save to
 	// check if the user has defined an ENV_VAR for the custom file name
@@ -22,8 +46,8 @@ func main() {
 		todoFileName = os.Getenv("TODO_FILENAME")
 	}
 
-	// addng a usage flag that points to all the functions
-	// we add usage information adn display a custom message when the code is run
+	// adding a usage flag that points to all the functions
+	// we add usage information and display a custom message when the code is run
 	flag.Usage = func() {
 		fmt.Fprintf(flag.CommandLine.Output(), "%s tool. Developed for use by Ernest Klu\n", os.Args[0])
 		fmt.Fprintf(flag.CommandLine.Output(), "Copyright 2023\n")
@@ -36,6 +60,7 @@ func main() {
 	list := flag.Bool("list", false, "List all tasks")
 	complete := flag.Int("complete", 0, "Item to be completed")
 	delete := flag.Int("delete", 0, "Item to be deleted")
+	verbose := flag.Bool("verbose", false, "Date/Time to tasks listed")
 	// after stating the flags, parse them in so that they can be used
 	// note that in order to use them in this state, they are pointers hence have to be dereferenced by a *
 	flag.Parse()
@@ -92,6 +117,9 @@ func main() {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
+	// adding a case to enable verbose output
+	case *verbose:
+		expandList(l, *verbose)
 
 	default:
 		// we assume an invalid falg was passed in, so we throw an error

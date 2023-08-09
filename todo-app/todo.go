@@ -55,7 +55,7 @@ func (l *List) Complete(i int) error {
 func (l *List) Delete(i int) error {
 	listItem := *l
 	if i <= 0 || i > len(listItem) {
-		return fmt.Errorf("Item %d does not exist", i)
+		return fmt.Errorf("item %d does not exist", i)
 	}
 
 	// restructuring position of items to mark deletion
