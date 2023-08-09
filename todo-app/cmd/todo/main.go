@@ -35,6 +35,7 @@ func main() {
 	add := flag.Bool("add", false, "Add task to ToDo list") // change this flag to add with Bool
 	list := flag.Bool("list", false, "List all tasks")
 	complete := flag.Int("complete", 0, "Item to be completed")
+	delete := flag.Int("delete", 0, "Item to be deleted")
 	// after stating the flags, parse them in so that they can be used
 	// note that in order to use them in this state, they are pointers hence have to be dereferenced by a *
 	flag.Parse()
@@ -80,6 +81,18 @@ func main() {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
+	// adding the case to delete a task from the List
+	case *delete > 0:
+		if err := l.Delete(*delete); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		// after deletion save the data into a new compiled lists
+		if err := l.Save(todoFileName); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+
 	default:
 		// we assume an invalid falg was passed in, so we throw an error
 		fmt.Fprintln(os.Stderr, "Invalid option")
