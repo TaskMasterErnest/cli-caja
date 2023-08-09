@@ -6,7 +6,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"testing"
 )
 
@@ -68,7 +67,7 @@ func TestTodoCLI(t *testing.T) {
 	// create the first test, which ensures that the tool can add a new task
 	// use the subtest t.Run function
 	t.Run("AddNewtask", func(t *testing.T) {
-		cmd := exec.Command(cmdPath, strings.Split(task, " ")...) // split the task by the spaces and pass then in one by one
+		cmd := exec.Command(cmdPath, "-task", task) // split the task by the spaces and pass then in one by one
 
 		if err := cmd.Run(); err != nil {
 			t.Fatal(err)
@@ -78,7 +77,7 @@ func TestTodoCLI(t *testing.T) {
 	// create a second test, which ensure that the tool can list the tasks
 	t.Run("ListTasks", func(t *testing.T) {
 		// by default, running the command without arguments shold list the tasks
-		cmd := exec.Command(cmdPath)
+		cmd := exec.Command(cmdPath, "-list")
 		output, err := cmd.CombinedOutput()
 		if err != nil {
 			t.Fatal(err)

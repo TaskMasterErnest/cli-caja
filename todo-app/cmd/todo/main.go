@@ -1,9 +1,9 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/TaskMasterErnest/todo"
 )
@@ -12,6 +12,14 @@ import (
 const todoFileName = ".todo.json"
 
 func main() {
+	// add flags to parse ad pass into the command-line
+	task := flag.String("task", "", "Task to be included in the ToDo string")
+	list := flag.Bool("list", false, "List all tasks")
+	complete := flag.Int("complete", 0, "Item to be completed")
+	// after stating the flags, parse them in so that they can be used
+	// note that in order to use them in this state, they are pointers hence have to be dereferenced by a *
+	flag.Parse()
+
 	// create a pointer to the memory address of an empty instance of the todo.List interface
 	l := &todo.List{}
 
@@ -25,21 +33,33 @@ func main() {
 	// what actions to perform, using a switch case
 	switch {
 	// for no extra arguments, print the list of tasks
-	case len(os.Args) == 1:
+	case *list:
 		for _, item := range *l {
-			fmt.Println(item.Task)
+			if !item.Done { // exclude the completed items from being listed
+				fmt.Println(item.Task)
+			}
 		}
-	// for no command-line arguments added, concatenate all provided arguments with a space
-	// and add them to the list as a Task
-	default:
-		// concatenate with a space
-		item := strings.Join(os.Args[1:], " ")
-		// call the Add method
-		l.Add(item)
-		// then save the task item to the List
+	case *complete > 0: // check if the number given is completed
+		if err := l.Complete(*complete); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		// if the item is found and declared as complete, save the new data into the file
 		if err := l.Save(todoFileName); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
+	case *task != "": // if the task flag is called and the arguments are not empty,
+		// addthe task to the List
+		l.Add(*task)
+		// then save the data to the List
+		if err := l.Save(todoFileName); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+	default:
+		// we assume an invalid falg was passed in, so we throw an error
+		fmt.Fprintln(os.Stderr, "Invalid option")
+		os.Exit(1)
 	}
 }
