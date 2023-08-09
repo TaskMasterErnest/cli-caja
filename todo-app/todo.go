@@ -92,3 +92,25 @@ func (l *List) Get(filename string) error {
 
 	return json.Unmarshal(file, l)
 }
+
+// We are going to implement an interface, the Stringer interface type Stringer interface { String() string }
+// this will allow us to call the String method and returns a string
+func (l *List) String() string {
+	// created a string to hold the task information
+	formatted := ""
+
+	// implement a function to print out a certain action when flags are called on item
+	// mostly the -complete flag
+	for index, t := range *l {
+		// set a prefix
+		prefix := "  "
+		if t.Done {
+			prefix = "X "
+		}
+		// adjust the index to start showing from 1 instead of 0
+		// return the formatted string to show the prefix, an index and the task given
+		formatted += fmt.Sprintf("%s%d: %s\n", prefix, index+1, t.Task)
+	}
+
+	return formatted
+}
