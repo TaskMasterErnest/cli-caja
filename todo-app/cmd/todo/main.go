@@ -1,17 +1,27 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
+	"io"
 	"os"
+	"strings"
 
 	"github.com/TaskMasterErnest/todo"
 )
 
-// hardcode the name of the file to store the data for the todo list in
-const todoFileName = ".todo.json"
+// making the ToDo filename a variable
+var todoFileName = ".todo.json"
 
 func main() {
+	// implement the use of a ENV_VAR to set the filename to save to
+	// check if the user has defined an ENV_VAR for the custom file name
+	// name of ENV_VAR should be TODO_FILENAME
+	if os.Getenv("TODO_FILENAME") != "" {
+		todoFileName = os.Getenv("TODO_FILENAME")
+	}
+
 	// addng a usage flag that points to all the functions
 	// we add usage information adn display a custom message when the code is run
 	flag.Usage = func() {
@@ -22,7 +32,7 @@ func main() {
 	}
 
 	// add flags to parse and pass into the command-line
-	task := flag.String("task", "", "Task to be included in the ToDo string")
+	add := flag.Bool("add", false, "Add task to ToDo list") // change this flag to add with Bool
 	list := flag.Bool("list", false, "List all tasks")
 	complete := flag.Int("complete", 0, "Item to be completed")
 	// after stating the flags, parse them in so that they can be used
@@ -55,9 +65,16 @@ func main() {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
-	case *task != "": // if the task flag is called and the arguments are not empty,
+	case *add: // if the task flag is called and the arguments are not empty,
 		// addthe task to the List
-		l.Add(*task)
+		// take any arguments, excluding flags, and use them as the new task
+		t, err := GetTask(os.Stdin, flag.Args()...)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		// add the task to the list
+		l.Add(t)
 		// then save the data to the List
 		if err := l.Save(todoFileName); err != nil {
 			fmt.Fprintln(os.Stderr, err)
@@ -68,4 +85,31 @@ func main() {
 		fmt.Fprintln(os.Stderr, "Invalid option")
 		os.Exit(1)
 	}
+}
+
+// Define a new function that can receive tasks from other sources and not just arguments only
+// The GetTask function will take in arguments passed from other sources through standard input
+func GetTask(r io.Reader, args ...string) (string, error) {
+	// check if any arguments were provided as parameters
+	// if there are, concatenate them to form the string that will be used as a Task input
+	if len(args) > 0 {
+		return strings.Join(args, " "), nil
+	}
+
+	// read the input from the standard input as it has been passed
+	s := bufio.NewScanner(r)
+	// scan the input
+	s.Scan()
+	// check for errors when reading the input
+	if err := s.Err(); err != nil {
+		return "", err
+	}
+
+	// if no errors, check that the scan is populated with Text than is useful
+	if len(s.Text()) == 0 {
+		return "", fmt.Errorf("Task should not be blank")
+	}
+
+	// if all is well, return the scanned text
+	return s.Text(), nil
 }

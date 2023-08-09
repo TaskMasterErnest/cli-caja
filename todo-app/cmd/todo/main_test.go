@@ -2,6 +2,7 @@ package main_test
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -66,8 +67,27 @@ func TestTodoCLI(t *testing.T) {
 
 	// create the first test, which ensures that the tool can add a new task
 	// use the subtest t.Run function
-	t.Run("AddNewtask", func(t *testing.T) {
-		cmd := exec.Command(cmdPath, "-task", task) // split the task by the spaces and pass then in one by one
+	t.Run("AddNewtaskFromArguments", func(t *testing.T) {
+		cmd := exec.Command(cmdPath, "-add", task) // split the task by the spaces and pass then in one by one
+
+		if err := cmd.Run(); err != nil {
+			t.Fatal(err)
+		}
+	})
+
+	// create a second test, to test adding tasks from data piped into the add command from stdin
+	task2 := "Adding a new task 2"
+	t.Run("AddNewtaskFromSTDIN", func(t *testing.T) {
+		cmd := exec.Command(cmdPath, "-add")
+		// open and connect to the StdIn of the command
+		cmdStdIn, err := cmd.StdinPipe()
+		if err != nil {
+			t.Fatal(err)
+		}
+		// write the contents of task2 into the StdIn of the command
+		io.WriteString(cmdStdIn, task2)
+		// close the connection to the pipe
+		cmdStdIn.Close()
 
 		if err := cmd.Run(); err != nil {
 			t.Fatal(err)
@@ -84,7 +104,7 @@ func TestTodoCLI(t *testing.T) {
 		}
 
 		// specify the result expected
-		expected := fmt.Sprintf("  1: %s\n\n", task)
+		expected := fmt.Sprintf("  1: %s\n  2: %s\n\n", task, task2)
 
 		if expected != string(output) {
 			t.Errorf("expected %q, got %q instead\n", expected, string(output))
