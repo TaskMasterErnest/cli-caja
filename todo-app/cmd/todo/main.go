@@ -15,6 +15,8 @@ import (
 var todoFileName = ".todo.json"
 
 // make a function that will print a list, it takes in a flag as a receiver
+// it takes in the verbose action as a boolean
+// it takes in an undone action as a boolean
 func expandList(l *todo.List, verbose bool) {
 	// adding a formatted list
 	formatted := ""
@@ -38,6 +40,27 @@ func expandList(l *todo.List, verbose bool) {
 	fmt.Println(formatted)
 }
 
+func showList(l *todo.List, undone bool) {
+	// adding a formatted list
+	formatted := ""
+	// loop over the list and print out the tasks
+	for index, t := range *l {
+		// set a prefix
+		prefix := "  "
+		if t.Done {
+			prefix = "X "
+		}
+		if undone {
+			if t.Done {
+				// skip over the task that has been completed
+				continue
+			}
+			formatted += fmt.Sprintf("%s%d: %s\n", prefix, index+1, t.Task)
+		}
+	}
+	fmt.Println(formatted)
+}
+
 func main() {
 	// implement the use of a ENV_VAR to set the filename to save to
 	// check if the user has defined an ENV_VAR for the custom file name
@@ -51,7 +74,9 @@ func main() {
 	flag.Usage = func() {
 		fmt.Fprintf(flag.CommandLine.Output(), "%s tool. Developed for use by Ernest Klu\n", os.Args[0])
 		fmt.Fprintf(flag.CommandLine.Output(), "Copyright 2023\n")
-		fmt.Fprintf(flag.CommandLine.Output(), "Usage information\n")
+		fmt.Fprintf(flag.CommandLine.Output(), "Usage information:\n")
+		fmt.Fprintf(flag.CommandLine.Output(), "\nSet a file to save data to:\n\n\texport TODO_FILENAME=<filename>\n")
+		fmt.Fprintf(flag.CommandLine.Output(), "\nUsage:\n\t%s -add <task>\n\techo \"task\" | %s -add\n", os.Args[0], os.Args[0])
 		flag.PrintDefaults()
 	}
 
@@ -60,7 +85,8 @@ func main() {
 	list := flag.Bool("list", false, "List all tasks")
 	complete := flag.Int("complete", 0, "Item to be completed")
 	delete := flag.Int("delete", 0, "Item to be deleted")
-	verbose := flag.Bool("verbose", false, "Date/Time to tasks listed")
+	verbose := flag.Bool("verbose", false, "Shows more information about the tasks")
+	undone := flag.Bool("undone", false, "Shows all incomplete tasks")
 	// after stating the flags, parse them in so that they can be used
 	// note that in order to use them in this state, they are pointers hence have to be dereferenced by a *
 	flag.Parse()
@@ -91,7 +117,7 @@ func main() {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
-	case *add: // if the task flag is called and the arguments are not empty,
+	case *add: // if the task flag is called and the arguments are not empty,/
 		// addthe task to the List
 		// take any arguments, excluding flags, and use them as the new task
 		t, err := GetTask(os.Stdin, flag.Args()...)
@@ -120,6 +146,9 @@ func main() {
 	// adding a case to enable verbose output
 	case *verbose:
 		expandList(l, *verbose)
+
+	case *undone:
+		showList(l, *undone)
 
 	default:
 		// we assume an invalid falg was passed in, so we throw an error
