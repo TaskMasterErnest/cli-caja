@@ -1,18 +1,21 @@
-ToDo 
+# ToDo 
 This application is a CLI program to get your todo list up and running in one place
 
-Installation
+## Installation
+
 Install the Todo app as todo with Go
 ```bash
   cd cmd/todo
   go build -o todo main.go
 ```
 
-Running Tests
+## Running Tests
+
 To run tests, run the following command
 ```bash
 go test -v 
 ```
 
-Usage/Examples
+## Usage/Examples
+
 Run the command `./todo -h` to get the options. 
