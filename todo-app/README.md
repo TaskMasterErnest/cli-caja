@@ -3,9 +3,10 @@ This application is a CLI program to get your todo list up and running in one pl
 
 Installation
 Install the Todo app as todo with Go
-
+```bash
   cd cmd/todo
   go build -o todo main.go
+```
 
 Running Tests
 To run tests, run the following command
