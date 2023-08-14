@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"strings"
 
@@ -87,6 +88,7 @@ func main() {
 	delete := flag.Int("delete", 0, "Item to be deleted")
 	verbose := flag.Bool("verbose", false, "Shows more information about the tasks")
 	undone := flag.Bool("undone", false, "Shows all incomplete tasks")
+	multiple := flag.Bool("multiple", false, "Write multiple lines to ToDo list")
 	// after stating the flags, parse them in so that they can be used
 	// note that in order to use them in this state, they are pointers hence have to be dereferenced by a *
 	flag.Parse()
@@ -150,6 +152,21 @@ func main() {
 	case *undone:
 		showList(l, *undone)
 
+	case *multiple:
+		t, err := MultiTask()
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		for _, item := range t {
+			l.Add(item)
+		}
+		// save the item to data
+		if err := l.Save(todoFileName); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+
 	default:
 		// we assume an invalid falg was passed in, so we throw an error
 		fmt.Fprintln(os.Stderr, "Invalid option")
@@ -177,9 +194,44 @@ func GetTask(r io.Reader, args ...string) (string, error) {
 
 	// if no errors, check that the scan is populated with Text than is useful
 	if len(s.Text()) == 0 {
-		return "", fmt.Errorf("Task should not be blank")
+		return "", fmt.Errorf("task should not be blank")
 	}
 
 	// if all is well, return the scanned text
 	return s.Text(), nil
+}
+
+// the MultiTask function initializes multiline input from the Stdin
+func MultiTask() (output []string, err error) {
+	// print an instruction to string to start the multiline input support
+	fmt.Print("Add multiple tasks, separated by a newline\n")
+
+	// initialize the reader to read output from Stdin
+	reader := bufio.NewReader(os.Stdin)
+
+	// an efficient way to store lines is by using the strings.Builder struct
+	var builder strings.Builder
+
+	// read the multiline separated by a newline
+	for {
+		line, err := reader.ReadString('\n')
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// write each line to the lines struct to store them
+		builder.WriteString(line)
+
+		// trim the whitespace from each input
+		// and break the reading if a line is empty
+		if len(strings.TrimSpace(line)) == 0 {
+			break
+		}
+	}
+	// get the lines stored in the strings.Builder struct
+	lines := strings.Split(builder.String(), "\n")
+	// trim the last two lines from the output
+	lines = lines[:len(lines)-2]
+
+	return lines, nil
 }
