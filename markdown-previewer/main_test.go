@@ -3,12 +3,13 @@ package main
 import (
 	"bytes"
 	"os"
+	"strings"
 	"testing"
 )
 
+// remove the hardcoded resultFile variable
 const (
 	inputFile  = "./testdata/test1.md"
-	resultFile = "test1.md.html"
 	goldenFile = "./testdata/test1.md.html"
 )
 
@@ -34,9 +35,15 @@ func TestParseContent(t *testing.T) {
 
 // integrated test case that tests the run function
 func TestRun(t *testing.T) {
-	if err := run(inputFile); err != nil {
+	// using a buffer to capture the new name of the generated file
+	var mockStdOut bytes.Buffer
+
+	if err := run(inputFile, &mockStdOut); err != nil {
 		t.Fatal(err)
 	}
+
+	// the resulting resultFile is extracted
+	resultFile := strings.TrimSpace(mockStdOut.String())
 
 	//check the result
 	result, err := os.ReadFile(resultFile)

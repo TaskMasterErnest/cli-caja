@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
-	"path/filepath"
 
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/russross/blackfriday/v2"
@@ -44,7 +44,7 @@ func main() {
 
 	// if the filename is present, call a function run() to take in the data
 	// if data errors out, send it to Stderr
-	if err := run(*filename); err != nil {
+	if err := run(*filename, os.Stdout); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
@@ -52,7 +52,8 @@ func main() {
 
 // The run() function takes in a single value, the filename
 // it reads the data from the file, parses the content to HTML and returns the content wrapped in HTML
-func run(filename string) error {
+// include an io Interface to capture the output to be used for the integration test
+func run(filename string, out io.Writer) error {
 	// read the file from the filename given
 	input, err := os.ReadFile(filename)
 	if err != nil {
@@ -62,10 +63,20 @@ func run(filename string) error {
 	// the parsecontent() function converts the Markdown to HTML
 	htmlData := parsecontent(input)
 
-	// set the name and path for the output file for final converted content
-	// print out the name of the final file name
-	outName := fmt.Sprintf("%s.html", filepath.Base(filename))
-	fmt.Println(outName)
+	// create a temporary file to write the processed data to
+	temp, err := os.CreateTemp("", "mdp*.html")
+	if err != nil {
+		return err
+	}
+	// close the file after writing to it
+	if err := temp.Close(); err != nil {
+		return err
+	}
+
+	// assign name of temp file outName
+	outName := temp.Name()
+
+	fmt.Fprintln(out, outName)
 
 	// the saveHTML() function runs to save the final converted content to a filename
 	return saveHTML(outName, htmlData)
