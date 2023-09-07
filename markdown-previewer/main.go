@@ -13,24 +13,25 @@ import (
 )
 
 const (
-	header = `<!DOCTYPE html>
- 	<html>
- 	  <head>
- 	    <meta http-equiv="content-type" content="text/html; charset=utf-8">
- 	    <title>Markdown Preview Tool</title>
- 	  </head>
- 	  <body>
+	header = `
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <title>Markdown Preview Tool</title>
+  </head>
+  <body>
 `
 
 	footer = `
-    </body>
- 	</html>
+  </body>
+</html>
   `
 )
 
 func main() {
 	// Parse in flags to take in file that contains the markdown to be used
-	filename := flag.String("file", "", "Mardown file to preview")
+	filename := flag.String("file", "", "Markdown file to preview")
 	// parse the content
 	flag.Parse()
 
@@ -50,7 +51,7 @@ func main() {
 }
 
 // The run() function takes in a single value, the filename
-// it read the data from the file , parses the content to HTML and returns the content wrapped in HTML
+// it reads the data from the file, parses the content to HTML and returns the content wrapped in HTML
 func run(filename string) error {
 	// read the file from the filename given
 	input, err := os.ReadFile(filename)
@@ -63,11 +64,11 @@ func run(filename string) error {
 
 	// set the name and path for the output file for final converted content
 	// print out the name of the final file name
-	outFName := fmt.Sprintf("%s.html", filepath.Base(filename))
-	fmt.Println(outFName)
+	outName := fmt.Sprintf("%s.html", filepath.Base(filename))
+	fmt.Println(outName)
 
 	// the saveHTML() function runs to save the final converted content to a filename
-	return saveHTML(outFName, htmlData)
+	return saveHTML(outName, htmlData)
 }
 
 // the parsecontent() function takes after the blackfriday package, it uses the run function to perform the conversion
