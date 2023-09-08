@@ -16,10 +16,28 @@ func main() {
 	// parse the command-line into the defined flag
 	flag.Parse()
 
+	var inputReader io.Reader
+
+	// check if there is a filename present
+	if len(os.Args) > 2 && os.Args[1] != "-" {
+		// assume filename is the 1st
+		fileName := os.Args[2]
+		// read from the file
+		file, err := os.Open(fileName)
+		if err != nil {
+			fmt.Printf("error opening file: %v\n", err)
+			os.Exit(1)
+		}
+		defer file.Close()
+		inputReader = file
+	} else {
+		inputReader = os.Stdin
+	}
+
 	// call the count function to count number of words
 	// count function takes input from Stdin and prints it out
 	// UPDATE: adding a pointer to take into account the result of the lines flag passed on the command-line
-	fmt.Println(count(os.Stdin, *lines, *bites))
+	fmt.Println(count(inputReader, *lines, *bites))
 }
 
 // count function takes in a Reader and returns an int
