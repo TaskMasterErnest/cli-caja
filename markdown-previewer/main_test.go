@@ -19,7 +19,11 @@ func TestParseContent(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	result := parsecontent(input)
+	result, err := parsecontent(input, "")
+	// handling the error from the added template file
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	expected, err := os.ReadFile(goldenFile)
 	if err != nil {
@@ -38,11 +42,11 @@ func TestRun(t *testing.T) {
 	// using a buffer to capture the new name of the generated file
 	var mockStdOut bytes.Buffer
 
-	if err := run(inputFile, &mockStdOut); err != nil {
+	if err := run(inputFile, "", &mockStdOut, true); err != nil {
 		t.Fatal(err)
 	}
 
-	// the resulting resultFile is extracted
+	// the resulting resultFile is extracted and cleaned from the buffer
 	resultFile := strings.TrimSpace(mockStdOut.String())
 
 	//check the result
