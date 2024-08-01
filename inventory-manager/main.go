@@ -5,8 +5,8 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"log"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/cli-caja/inventory-manager/inventory"
@@ -46,6 +46,10 @@ func main() {
 	// actions
 	list := flag.Bool("l", false, "List the contents of file")
 	add := flag.Bool("add", false, "Add record to file")
+	// id := flag.String("id", "", "Product ID")
+	// name := flag.String("name", "", "Product Name")
+	// price := flag.Float64("price", 0.0, "Product Price")
+	// quantity := flag.Int("quantity", 0, "Product Quantity")
 	//parser
 	flag.Parse()
 
@@ -59,36 +63,87 @@ func main() {
 	CheckFile(*inventoryFile)
 	AddNewLineIfMissing(*inventoryFile)
 
-	// work on inventory file
+	// open the inventory file
 	file, err := os.Open(*inventoryFile)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	defer file.Close()
+
+	l := inventory.Inventory{}
+
+	if err := inventory.List(file); err != nil {
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 
-	defer file.Close()
-
-	// start actions
 	switch {
 	case *list:
-		list := inventory.ListContent(file)
-		fmt.Println()
-		for _, l := range list {
-			fmt.Printf("%v\n", l)
-		}
+		// inventory := inventory.List(file)
+		// fmt.Println()
+		// for _, product := range inventory {
+		// 	fmt.Println(product)
+		// }
+		fmt.Println(l)
 	case *add:
-		add, err := GetArgs(os.Stdin, flag.Args()...)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
+		// get the args and perform the computation here
+		args := flag.Args()
+		if len(args) != 4 {
+			fmt.Fprintln(os.Stderr, "Invalid number of args; requires 4")
 			os.Exit(1)
 		}
-		err = inventory.AddContent(*inventoryFile, add)
+
+		productID := args[0]
+		name := args[1]
+		quantityStr := args[2]
+		priceStr := args[3]
+
+		quantity, err := strconv.ParseInt(quantityStr, 10, 64)
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "Error adding content:", err)
+			fmt.Fprintln(os.Stderr, "invalid quantity:", err)
 			os.Exit(1)
 		}
-		fmt.Println("Content added successfully!")
+
+		price, err := strconv.ParseFloat(priceStr, 64)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "invalid price:", err)
+			os.Exit(1)
+		}
+
+		inventory.AppendItem(*inventoryFile, productID, name, quantity, price)
 	}
+
+	// work on inventory file
+	// file, err := os.Open(*inventoryFile)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// 	os.Exit(1)
+	// }
+
+	// defer file.Close()
+
+	// start actions
+	// switch {
+	// case *list:
+	// 	list := inventory.ListProducts(file)
+	// 	fmt.Println()
+	// 	for _, l := range list {
+	// 		fmt.Printf("%v\n", l)
+	// 	}
+	// case *add:
+	// 	add, err := GetArgs(os.Stdin, flag.Args()...)
+	// 	if err != nil {
+	// 		fmt.Fprintln(os.Stderr, err)
+	// 		os.Exit(1)
+	// 	}
+	// 	err = inventory.AddProduct(*inventoryFile, add)
+	// 	if err != nil {
+	// 		fmt.Fprintln(os.Stderr, "Error adding content:", err)
+	// 		os.Exit(1)
+	// 	}
+	// 	fmt.Println("Content added successfully!")
+	// }
 
 }
 
